@@ -1,14 +1,18 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
+from flask_bcrypt import Bcrypt
 
 api = Namespace('users', description='User operations')
 
 # Define the user model for input validation and documentation
-user_model = api.model('User', {
+user_model = api.model('User',{
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
-    'email': fields.String(required=True, description='Email of the user')
+    'email': fields.String(required=True, description='Email of the user'),
+    'password': fields.String(required=True, description='password of the user')
 })
+
+bcrypt = Bcrypt()
 
 @api.route('/')
 class UserList(Resource):
@@ -26,6 +30,10 @@ class UserList(Resource):
             return {'error': 'Email already registered'}, 400
 
         try:
+             # Hash the password before creating the user
+            password_hash = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
+            user_data['password'] = password_hash
+
             new_user = facade.create_user(user_data)
             return new_user.to_dict(), 201
         except Exception as e:
@@ -58,6 +66,9 @@ class UserResource(Resource):
         if not user:
             return {'error': 'User not found'}, 404
         try:
+            if 'password' in user_data:
+                password_hash = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
+                user_data['password'] = password_hash
             facade.update_user(user_id, user_data)
             return user.to_dict(), 200
         except Exception as e:
