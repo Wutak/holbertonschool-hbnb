@@ -23,7 +23,7 @@ class UserList(Resource):
     def post(self):
         """Register a new user"""
         user_data = api.payload
-
+        print(f"Requête POST reçue avec les données : {user_data}")
         # Simulate email uniqueness check (to be replaced by real validation with persistence)
         existing_user = facade.get_user_by_email(user_data['email'])
         if existing_user:
@@ -31,12 +31,12 @@ class UserList(Resource):
 
         try:
              # Hash the password before creating the user
-            password_hash = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
-            user_data['password'] = password_hash
-
+            user_data['password'] = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
             new_user = facade.create_user(user_data)
+            print(f"Utilisateur créé : {new_user.to_dict()}")
             return new_user.to_dict(), 201
         except Exception as e:
+            print(f"Erreur lors de la création de l'utilisateur : {e}")
             return {'error': str(e)}, 400
         
     @api.response(200, 'List of users retrieved successfully')
