@@ -15,15 +15,15 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-        self.hash_password(password)
-    
+        self.password = self.hash_password(password)
+
     def hash_password(self, password):
-    # Hashes the password before storing it
-        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        return hashed_password
 
     def verify_password(self, password):
-    # Verifies if the provided password matches the hashed password.
-        return bcrypt.check_password_hash(self.password, password)
+        is_valid = bcrypt.check_password_hash(self.password, password)
+        return is_valid
     
     @property
     def first_name(self):
@@ -73,6 +73,17 @@ class User(BaseModel):
         if not isinstance(value, bool):
             raise TypeError("Is Admin must be a boolean")
         self.__is_admin = value
+
+    @property
+    def password(self):
+        return self.__password
+
+    @password.setter
+    def password(self, value):
+        """Setter for the password, which hashes the password before storing it"""
+        if not isinstance(value, str):
+            raise TypeError("Password must be a string")
+        self.__password = self.hash_password(value)
 
     def add_place(self, place):
         """Add an amenity to the place."""
