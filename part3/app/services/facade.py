@@ -7,7 +7,6 @@ from app.persistence.repository import SQLAlchemyRepository
 
 class HBnBFacade:
     def __init__(self):
-        self.user_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
         self.place_repo = InMemoryRepository()
         self.review_repo = InMemoryRepository()
@@ -20,7 +19,7 @@ class HBnBFacade:
         return user
     
     def get_users(self):
-        return self.user_repo.get_all(user_id)
+        return self.user_repo.get_all()
 
     def get_user(self, user_id):
         return self.user_repo.get(user_id)

@@ -10,13 +10,14 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-
 bcrypt = Bcrypt()
 jwt = JWTManager()
 
 def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    db.init_app(app)
 
     api = Api(app, version='1.0', title='HBnB API', description='HBnB Application API')
 
@@ -28,6 +29,5 @@ def create_app(config_class="config.DevelopmentConfig"):
 
     bcrypt.init_app(app)
     jwt.init_app(app)
-    db.init_app(app)
-    
+   
     return app
