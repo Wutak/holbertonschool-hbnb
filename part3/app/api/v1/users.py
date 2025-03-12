@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_bcrypt import request
 
 api = Namespace('users', description='User operations')
 
@@ -62,7 +63,7 @@ class UserResource(Resource):
         user_data = api.payload
         user = facade.get_user(user_id)
         user_id = get_jwt_identity()['id']
-        user_id_from_troken = get_jwt_identity().get("id")
+        user_id_from_token = get_jwt_identity().get("id")
 
         if user_id_from_token != user.id:
             return {"error": "Unauthorized action"}, 403
@@ -101,8 +102,8 @@ class AdminUserCreate(Resource):
         if facade.get_user_by_email(email):
             return {'error': 'Email already registered'}, 400
 
-        # Logic to create a new user
-        pass
+        facade.create_user(user_data)
+        return {'message': 'User created successfully'}, 201
 
 @api.route('/users/<user_id>')
 class AdminUserModify(Resource):
@@ -120,6 +121,5 @@ class AdminUserModify(Resource):
             existing_user = facade.get_user_by_email(email)
             if existing_user and existing_user.id != user_id:
                 return {'error': 'Email already in use'}, 400
-
-        # Logic to update user details
-        pass
+        facade.update_user(user_id, data)
+        return {'message': 'User updated successfully'}, 200
