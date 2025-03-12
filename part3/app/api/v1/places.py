@@ -31,9 +31,12 @@ place_model = api.model('Place', {
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()
+    @get_jwt_identity()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
+    @api.response(403, 'Unauthorized action')
     def post(self):
         """Register a new place"""
         place_data = api.payload
@@ -41,7 +44,7 @@ class PlaceList(Resource):
         current_user = get_jwt_identity()
 
         if not current_user_id:
-            return{'error': 'Unauthorized'}, 401
+            return{'error': 'Unauthorized action'}, 403
 
         if owner is None or len(owner) == 0:
             return {'error': 'Invalid input data.'}, 400
