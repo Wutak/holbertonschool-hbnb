@@ -1,7 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_bcrypt import request
+from flask import request
 
 api = Namespace('users', description='User operations')
 

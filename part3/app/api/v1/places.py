@@ -33,7 +33,6 @@ place_model = api.model('Place', {
 @api.route('/')
 class PlaceList(Resource):
     @jwt_required()
-    @get_jwt_identity()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
@@ -63,6 +62,8 @@ class PlaceList(Resource):
             return {'error': str(e)}, 400
 
     @api.response(200, 'List of places retrieved successfully')
+
+    @jwt_required()
     def get(self):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
@@ -70,6 +71,7 @@ class PlaceList(Resource):
 
 @api.route('/<place_id>')
 class PlaceResource(Resource):
+    @jwt_required()
     @api.response(200, 'Place details retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
@@ -97,10 +99,13 @@ class PlaceResource(Resource):
 
 @api.route('/<place_id>/amenities')
 class PlaceAmenities(Resource):
+    @jwt_required()
     @api.expect(amenity_model)
     @api.response(200, 'Amenities added successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
+
+    @jwt_required()
     def post(self, place_id):
         amenities_data = api.payload
         if not amenities_data or len(amenities_data) == 0:
@@ -121,6 +126,7 @@ class PlaceAmenities(Resource):
 
 @api.route('/<place_id>/reviews/')
 class PlaceReviewList(Resource):
+    @jwt_required()
     @api.response(200, 'List of reviews for the place retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
