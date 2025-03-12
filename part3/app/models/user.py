@@ -1,10 +1,14 @@
 from .basemodel import BaseModel
 import re
+from app import Bcrypt
+
+bcrypt = Bcrypt()
+
 
 class User(BaseModel):
     emails = set()
 
-    def __init__(self, first_name, last_name, email, is_admin=False):
+    def __init__(self, first_name, last_name, email, password, is_admin=False):
         super().__init__()
         self.first_name = first_name
         self.last_name = last_name
@@ -12,6 +16,26 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
+        self.password = password
+    
+    def hash_password(self, password):
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        return hashed_password
+
+    def verify_password(self, password):
+        is_valid = bcrypt.check_password_hash(self.password, password)
+        return is_valid
+    
+    @property
+    def password(self):
+        return self.__password
+
+    @password.setter
+    def password(self, value):
+        """Setter for the password, which hashes the password before storing it"""
+        if not isinstance(value, str):
+            raise TypeError("Password must be a string")
+        self.__password = self.hash_password(value)
     
     @property
     def first_name(self):
