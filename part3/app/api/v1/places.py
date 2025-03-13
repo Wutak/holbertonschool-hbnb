@@ -43,9 +43,11 @@ class PlaceList(Resource):
         owner = place_data.get('owner_id', None)
         current_user_id = get_jwt_identity()
 
+        # User exists
         if not current_user_id:
             return{'error': 'Unauthorized action'}, 403
-
+        
+        # Place exists
         if owner is None or len(owner) == 0:
             return {'error': 'Invalid input data.'}, 400
 
@@ -82,15 +84,29 @@ class PlaceResource(Resource):
         return place.to_dict_list(), 200
 
     @api.expect(place_model)
+    @jwt_required()
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
+    @qpi.response(403, 'Unauthorized action')
     def put(self, place_id):
         """Update a place's information"""
         place_data = api.payload
         place = facade.get_place(place_id)
+        current_user = get_jwt_identity()
+
+        # Place exists
         if not place:
             return {'error': 'Place not found'}, 404
+
+        # User exists
+        if facade.get_user(place.owner_id) is None:
+            return {"error": "Invalid input data"}, 400
+        
+        # Owner is logged
+        if place.owner_id != current_user:
+            return {'error': 'Unauthorized action'}, 403
+
         try:
             facade.update_place(place_id, place_data)
             return {'message': 'Place updated successfully'}, 200

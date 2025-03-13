@@ -55,8 +55,10 @@ class UserResource(Resource):
     @jwt_required()
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
+    @api.response(403, 'Unauthorized action')
     @api.response(403, "Unauthorized action, you cannot change this user's informations")
-    @api.response(400, 'Invalid input data')
+    @api.response(403, 'You cannot modify id')
+    @api.response(400, 'You canot modify email or password.')
     def put(self, user_id):
         from app import bcrypt
 
@@ -65,9 +67,11 @@ class UserResource(Resource):
         user_id = get_jwt_identity()['id']
         user_id_from_token = get_jwt_identity().get("id")
 
+        # User is authenticated
         if user_id_from_token != user.id:
             return {"error": "Unauthorized action"}, 403
 
+        # Can't modify other's informations
         if user_id != user.id:
             return {"error": "Unauthorized action, you cannot change this user's informations"}, 403
 
