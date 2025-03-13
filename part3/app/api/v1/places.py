@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import request
 
 api = Namespace('places', description='Place operations')
 
@@ -40,7 +41,7 @@ class PlaceList(Resource):
         """Register a new place"""
         place_data = api.payload
         owner = place_data.get('owner_id', None)
-        current_user = get_jwt_identity()
+        current_user_id = get_jwt_identity()
 
         if not current_user_id:
             return{'error': 'Unauthorized action'}, 403
@@ -61,6 +62,8 @@ class PlaceList(Resource):
             return {'error': str(e)}, 400
 
     @api.response(200, 'List of places retrieved successfully')
+
+    @jwt_required()
     def get(self):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
@@ -68,6 +71,7 @@ class PlaceList(Resource):
 
 @api.route('/<place_id>')
 class PlaceResource(Resource):
+    @jwt_required()
     @api.response(200, 'Place details retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
@@ -95,10 +99,13 @@ class PlaceResource(Resource):
 
 @api.route('/<place_id>/amenities')
 class PlaceAmenities(Resource):
+    @jwt_required()
     @api.expect(amenity_model)
     @api.response(200, 'Amenities added successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
+
+    @jwt_required()
     def post(self, place_id):
         amenities_data = api.payload
         if not amenities_data or len(amenities_data) == 0:
@@ -119,6 +126,7 @@ class PlaceAmenities(Resource):
 
 @api.route('/<place_id>/reviews/')
 class PlaceReviewList(Resource):
+    @jwt_required()
     @api.response(200, 'List of reviews for the place retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
@@ -127,4 +135,20 @@ class PlaceReviewList(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
         return [review.to_dict() for review in place.reviews], 200
-    
+ 
+@api.route('/places/<place_id>')
+class AdminPlaceModify(Resource):
+    @jwt_required()
+    def put(self, place_id):
+        current_user = get_jwt_identity()
+
+        # Set is_admin default to False if not exists
+        is_admin = current_user.get('is_admin', False)
+        user_id = current_user.get('id')
+
+        place = facade.get_place(place_id)
+        if not is_admin and place.owner_id != user_id:
+            return {'error': 'Unauthorized action'}, 403
+        data = request.json
+        facade.update_place(place_id, data)
+        return {'message': 'Place updated successfully'}, 200
