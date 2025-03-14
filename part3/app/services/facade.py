@@ -15,7 +15,6 @@ class HBnBFacade:
     def create_user(self, user_data):
         user = User(**user_data)
         self.user_repo.add(user)
-        print(f"Utilisateur créé et ajouté : {user.to_dict()}")
         return user
     
     def get_users(self):
@@ -25,13 +24,7 @@ class HBnBFacade:
         return self.user_repo.get(user_id)
 
     def get_user_by_email(self, email):
-        print(f"Tentative de récupération de l'utilisateur par email : {email}")
-        user = self.user_repo.get_by_attribute('email', email)
-        if user:
-            print(f"Utilisateur récupéré par email : {user.to_dict()}")
-        else:
-            print("Utilisateur non trouvé par email")
-        return user
+        return self.user_repo.get_by_attribute('email', email)
     
     def update_user(self, user_id, user_data):
         self.user_repo.update(user_id, user_data)

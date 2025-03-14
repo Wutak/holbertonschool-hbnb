@@ -1,8 +1,9 @@
 from .basemodel import BaseModel
 import re
-from flask_bcrypt import Bcrypt
+from app import Bcrypt
 
 bcrypt = Bcrypt()
+
 
 class User(BaseModel):
     emails = set()
@@ -15,8 +16,8 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-        self.password = self.hash_password(password)
-
+        self.password = password
+    
     def hash_password(self, password):
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         return hashed_password
@@ -24,6 +25,17 @@ class User(BaseModel):
     def verify_password(self, password):
         is_valid = bcrypt.check_password_hash(self.password, password)
         return is_valid
+    
+    @property
+    def password(self):
+        return self.__password
+
+    @password.setter
+    def password(self, value):
+        """Setter for the password, which hashes the password before storing it"""
+        if not isinstance(value, str):
+            raise TypeError("Password must be a string")
+        self.__password = self.hash_password(value)
     
     @property
     def first_name(self):
@@ -73,17 +85,6 @@ class User(BaseModel):
         if not isinstance(value, bool):
             raise TypeError("Is Admin must be a boolean")
         self.__is_admin = value
-
-    @property
-    def password(self):
-        return self.__password
-
-    @password.setter
-    def password(self, value):
-        """Setter for the password, which hashes the password before storing it"""
-        if not isinstance(value, str):
-            raise TypeError("Password must be a string")
-        self.__password = self.hash_password(value)
 
     def add_place(self, place):
         """Add an amenity to the place."""

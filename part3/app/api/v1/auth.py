@@ -1,8 +1,10 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app.services import facade
+from flask import request
 
 api = Namespace('auth', description='Authentication operations')
+api = Namespace('admin', description='Admin operations')
 
 # Model for input validation
 login_model = api.model('Login', {
@@ -15,7 +17,7 @@ class Login(Resource):
     @api.expect(login_model)
     def post(self):
         """Authenticate user and return a JWT token"""
-        credentials = api.payload
+        credentials = api.payload  # Get the email and password from the request payload
         
         # Step 1: Retrieve the user based on the provided email
         user = facade.get_user_by_email(credentials['email'])
@@ -29,7 +31,7 @@ class Login(Resource):
         
         # Step 4: Return the JWT token to the client
         return {'access_token': access_token}, 200
-
+    
 @api.route('/protected')
 class ProtectedResource(Resource):
     @jwt_required()
