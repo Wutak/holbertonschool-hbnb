@@ -3,7 +3,6 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from app.services import facade
 
 api = Namespace('auth', description='Authentication operations')
-api = Namespace('admin', description='Admin operations')
 
 # Model for input validation
 login_model = api.model('Login', {

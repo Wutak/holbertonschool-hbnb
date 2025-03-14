@@ -40,20 +40,11 @@ class PlaceList(Resource):
     def post(self):
         """Register a new place"""
         place_data = api.payload
-        owner = place_data.get('owner_id', None)
         current_user_id = get_jwt_identity()
 
         # User exists
         if not current_user_id:
             return{'error': 'Unauthorized action'}, 403
-        
-        # Place exists
-        if owner is None or len(owner) == 0:
-            return {'error': 'Invalid input data.'}, 400
-
-        user = facade.user_repo.get_by_attribute('id', owner)
-        if not user:
-            return {'error': 'Invalid input data'}, 400
 
         place_data['owner_id'] = current_user_id
 
